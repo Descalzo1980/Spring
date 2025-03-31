@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Главная</title>
+    <style>
+        body { font-family: Arial; margin: 20px; }
+        nav { background: #f0f0f0; padding: 10px; margin-bottom: 20px; }
+        a { margin-right: 15px; text-decoration: none; color: #333; }
+        .api-response { margin: 20px 0; padding: 10px; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+<nav>
+    <a href="/">Главная</a>
+    <a href="/info.html">Информация</a>
+    <a href="/user.html">Приветствие</a>
+</nav>
+
+<h1>Добро пожаловать!</h1>
+<p>Это главная страница моего Spring Boot приложения.</p>
+
+<div>
+    <button onclick="loadApiData('/api/info')">Загрузить информацию</button>
+    <button onclick="loadApiData('/api/greet/Гость')">Приветствие</button>
+</div>
+
+<div class="api-response" id="apiData"></div>
+
+<script>
+    async function loadApiData(endpoint) {
+        try {
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error('Ошибка API');
+            const data = await response.json();
+            document.getElementById('apiData').innerHTML =
+                `<strong>Ответ API:</strong> ${data.message} (Статус: ${data.status})`;
+        } catch (error) {
+            document.getElementById('apiData').innerHTML =
+                `<strong>Ошибка:</strong> ${error.message}`;
+        }
+    }
+</script>
+</body>
+</html>
