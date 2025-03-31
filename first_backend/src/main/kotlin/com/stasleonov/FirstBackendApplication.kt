@@ -1,4 +1,4 @@
-package com.stasleonov.first_backend
+package com.stasleonov
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
