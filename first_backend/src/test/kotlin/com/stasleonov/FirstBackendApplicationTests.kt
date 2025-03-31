@@ -1,4 +1,4 @@
-package com.stasleonov.first_backend
+package com.stasleonov
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
