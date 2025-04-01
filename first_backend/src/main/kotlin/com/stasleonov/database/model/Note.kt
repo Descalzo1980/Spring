@@ -1,4 +1,4 @@
-package com.stasleonov.model
+package com.stasleonov.database.model
 
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
@@ -11,5 +11,6 @@ data class Note(
     val content: String,
     val color: Long,
     val createAt: Instant,
+    val ownedId: ObjectId,
     @Id val id: ObjectId = ObjectId.get()
 )
