@@ -5,13 +5,12 @@ import com.stasleonov.database.repository.NoteRepository
 import org.bson.types.ObjectId
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
 
-// POST http:localhost:8085/notes
-// GET  http:localhost:8085/notes?ownerId=123
 
 @RestController
 @RequestMapping("/notes")
@@ -24,7 +23,6 @@ class NoteController(
         val title: String,
         val content: String,
         val color: Long,
-        val ownedId: String,
     )
 
     data class NoteResponse(
@@ -36,7 +34,9 @@ class NoteController(
     )
 
     @PostMapping
-    fun save(body: NoteRequest): NoteResponse {
+    fun save(
+       @RequestBody body: NoteRequest
+    ): NoteResponse {
         val note = repository.save(
             Note(
                 id = body.id?.let { ObjectId(it) } ?: ObjectId.get(),
@@ -44,7 +44,7 @@ class NoteController(
                 content = body.content,
                 color = body.color,
                 createAt = Instant.now(),
-                ownedId = ObjectId(body.ownedId)
+                ownedId = ObjectId()
             )
         )
         return note.toResponse()
@@ -52,9 +52,9 @@ class NoteController(
 
     @GetMapping
     fun findByOwnerId(
-        @RequestParam(required = true) ownerId: String
+        @RequestParam(required = true) ownedId: String
     ): List<NoteResponse> {
-        return repository.findByOwnerId(ObjectId(ownerId)).map {
+        return repository.findByOwnedId(ObjectId(ownedId)).map {
             it.toResponse()
         }
     }
