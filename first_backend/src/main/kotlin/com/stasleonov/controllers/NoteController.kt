@@ -3,13 +3,19 @@ package com.stasleonov.controllers
 import com.stasleonov.database.model.Note
 import com.stasleonov.database.repository.NoteRepository
 import org.bson.types.ObjectId
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.Instant
+
+// GET http://localhost:8085/notes?ownedId=
+// POST http://localhost:8085/notes
+// DELETE http://localhost:8085/notes/123
 
 
 @RestController
@@ -57,6 +63,11 @@ class NoteController(
         return repository.findByOwnedId(ObjectId(ownedId)).map {
             it.toResponse()
         }
+    }
+
+    @DeleteMapping(path = ["/{id}"])
+    fun deleteById(@PathVariable id: String){
+        repository.deleteById(ObjectId(id))
     }
 }
 
