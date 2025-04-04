@@ -4,13 +4,12 @@ import com.stasleonov.database.model.RefreshToken
 import com.stasleonov.database.model.User
 import com.stasleonov.database.repository.RefreshTokenRepository
 import com.stasleonov.database.repository.UserRepository
-import org.apache.tomcat.util.net.openssl.ciphers.MessageDigest
 import org.bson.types.ObjectId
 import org.springframework.security.authentication.BadCredentialsException
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
-import java.util.Base64
+import java.util.*
 
 @Service
 class AuthService(
@@ -43,6 +42,34 @@ class AuthService(
 
         val newAccessToken = jwtService.generateAccessToken(user.id.toHexString())
         val newRefreshToken = jwtService.generateRefreshToken(user.id.toHexString())
+
+        storeRefreshToken(user.id,newRefreshToken)
+
+        return TokenPair(
+            accessToken = newAccessToken,
+            refreshToken = newRefreshToken
+        )
+    }
+
+    @Transactional
+    fun refreshToken(refreshToken: String): TokenPair {
+        if(!jwtService.validateAccessToken(refreshToken)){
+            throw IllegalArgumentException("Invalid refresh token")
+        }
+
+        val userId = jwtService.getUserIdFromToken(refreshToken)
+        val user = userRepository.findById(ObjectId(userId)).orElseThrow {
+            IllegalArgumentException("Invalid refresh token")
+        }
+        val hashed = hashToken(refreshToken)
+        refreshTokenRepository.findByUserIdAndHashedToken(user.id,hashed)
+            ?: throw IllegalArgumentException("Refresh token not recognized(maybe used or expired?)")
+        refreshTokenRepository.deleteByUserIdAndHashedToken(user.id,hashed)
+
+        val newAccessToken = jwtService.generateAccessToken(userId)
+        val newRefreshToken = jwtService.generateRefreshToken(userId)
+
+        storeRefreshToken(user.id,newRefreshToken)
 
         return TokenPair(
             accessToken = newAccessToken,

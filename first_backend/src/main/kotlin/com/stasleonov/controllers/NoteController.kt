@@ -3,6 +3,7 @@ package com.stasleonov.controllers
 import com.stasleonov.database.model.Note
 import com.stasleonov.database.repository.NoteRepository
 import org.bson.types.ObjectId
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -41,8 +42,9 @@ class NoteController(
 
     @PostMapping
     fun save(
-       @RequestBody body: NoteRequest
+        @RequestBody body: NoteRequest
     ): NoteResponse {
+        val ownedId = SecurityContextHolder.getContext().authentication.principal as String
         val note = repository.save(
             Note(
                 id = body.id?.let { ObjectId(it) } ?: ObjectId.get(),
@@ -50,24 +52,29 @@ class NoteController(
                 content = body.content,
                 color = body.color,
                 createAt = Instant.now(),
-                ownedId = ObjectId()
+                ownedId = ObjectId(ownedId)
             )
         )
         return note.toResponse()
     }
 
     @GetMapping
-    fun findByOwnerId(
-        @RequestParam(required = true) ownedId: String
-    ): List<NoteResponse> {
+    fun findByOwnerId(): List<NoteResponse> {
+        val ownedId = SecurityContextHolder.getContext().authentication.principal as String
         return repository.findByOwnedId(ObjectId(ownedId)).map {
             it.toResponse()
         }
     }
 
     @DeleteMapping(path = ["/{id}"])
-    fun deleteById(@PathVariable id: String){
-        repository.deleteById(ObjectId(id))
+    fun deleteById(@PathVariable id: String) {
+        val note = repository.findById(ObjectId(id)).orElseThrow {
+            IllegalArgumentException("Note not found")
+        }
+        val ownedId = SecurityContextHolder.getContext().authentication.principal as String
+        if (note.ownedId.toHexString() == ownedId) {
+            repository.deleteById(ObjectId(id))
+        }
     }
 }
 

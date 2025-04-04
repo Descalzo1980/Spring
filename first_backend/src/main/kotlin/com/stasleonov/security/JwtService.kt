@@ -9,7 +9,7 @@ import java.util.Date
 
 @Service
 class JwtService(
-    @Value("JWT") private val jwt: String
+    @Value("\${jwt.secret}") private val jwt: String
 ) {
 
     private val secretKey = Keys.hmacShaKeyFor(java.util.Base64.getDecoder().decode(jwt))
